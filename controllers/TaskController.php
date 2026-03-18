@@ -2,21 +2,27 @@
 
 namespace app\controllers;
 
+use app\models\entities\User;
+use app\models\repositories\UserRepository;
+use Reflection;
+use ReflectionClass;
+use ReflectionMethod;
+
 class TaskController extends Controller
 {
 
     private function task($n = 3)
     {
-        $answer = [];
-        for ($i = 0; $i <= $n; $i++) {
-            $answer[] = pow(2, $i);
-        }
-        return $answer;
+        $user = new UserRepository();
+        $ref = new ReflectionMethod(UserRepository::class, 'isAuth');
+        var_dump($ref->invoke($user));
+
+        return [];
     }
 
 
     public function actionIndex()
     {
-        echo $this->render('task', ['answer' => $this->task()]);
+        echo $this->render('task', $this->task());
     }
 }

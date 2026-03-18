@@ -2,7 +2,7 @@
 
 <?php foreach ($catalog as $item): ?>
     <div>
-        <h3><a href="/?c=product&a=card&id=<?= $item['id'] ?>"><?= $item['name'] ?></a></h3>
+        <h3><a href="/product/card/?id=<?= $item['id'] ?>"><?= $item['name'] ?></a></h3>
         <p>price: <?= $item['price'] ?></p>
         <button class="buy" data-id="<?= $item['id'] ?>" data-count="1" data-price="<?= $item['price'] ?>">Купить</button>
     </div>

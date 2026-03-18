@@ -4,7 +4,6 @@ namespace app\engine;
 
 use app\traits\TSingletone;
 use \PDO;
-use PDOException;
 
 class Db
 {

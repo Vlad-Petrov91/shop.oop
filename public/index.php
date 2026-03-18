@@ -6,28 +6,39 @@ include __DIR__ . "/../config/config.php";
 
 use app\models\{User, News};
 use app\engine\{Autoload, Render, Request, TwigRender};
+use app\models\repositories\UserRepository;
 
 //вызываем автозагрузчики
-spl_autoload_register([new Autoload(), 'loadClass']);
+// spl_autoload_register([new Autoload(), 'loadClass']);
 require_once '../vendor/autoload.php';
 
 session_start();
 
-$request = new Request();
+try {
+    $request = new Request();
 
-$controller = $request->getControllerName() ?: 'product';
-$action = $request->getActionName();
+    var_dump($_SERVER['REQUEST_URI']);
+    var_dump(parse_url($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 
-$controllerClass = CONTROLLER_NAMESPACE . ucfirst($controller) . 'Controller';
+    $controller = $request->getControllerName() ?: 'product';
+    $action = $request->getActionName();
 
-if (class_exists($controllerClass)) {
-    $render = new Render();
+    $controllerClass = CONTROLLER_NAMESPACE . ucfirst($controller) . 'Controller';
 
-    $controller = new $controllerClass($render, $request);
-    $controller->runAction($action);
-} else {
-    die("Нет такого контроллера");
+    if (class_exists($controllerClass)) {
+        $render = new Render();
+
+        $controller = new $controllerClass($render, $request);
+        $controller->runAction($action);
+    } else {
+        throw new Exception('Страница не найдена 404');
+    }
+} catch (PDOException $error) {
+    echo "Ошибка БД: " . $error->getMessage();
+} catch (Exception $error) {
+    echo $error->getMessage();
 }
+
 
 // try {
 //     $pdo_db = new DB();

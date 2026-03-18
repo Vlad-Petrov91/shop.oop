@@ -2,18 +2,19 @@
 
 namespace app\models;
 
-use app\interfaces\IModel;
+use Exception;
 
-abstract class Model implements IModel
+abstract class Model
 {
     protected array $props = [];
+
     public function __set($name, $value)
     {
         if (isset($this->props[$name])) {
             $this->props[$name] = true;
             $this->$name = $value;
         } else {
-            var_dump("Свойство отсутствует");
+            throw new Exception('Свойство отсутствует');
         }
     }
 
@@ -22,7 +23,7 @@ abstract class Model implements IModel
         if (isset($this->$name)) {
             return $this->$name;
         } else {
-            var_dump("Свойство отсутствует");
+            throw new Exception('Свойство отсутствует');
         }
     }
 }

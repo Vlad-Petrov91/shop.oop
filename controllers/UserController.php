@@ -3,15 +3,18 @@
 namespace app\controllers;
 
 use app\controllers\Controller;
+use app\engine\Request;
+use app\models\repositories\UserRepository;
 use app\models\User;
 
 class UserController extends Controller
 {
     public function actionLogin()
     {
-        $login = $_POST['login'];
-        $pass = $_POST['password'];
-        if (User::Auth($login, $pass)) {
+        $user = new UserRepository();
+        $login = $this->request->getParams()['login'];
+        $pass = $this->request->getParams()['password'];
+        if ($user->Auth($login, $pass)) {
             header("Location: /");
             die();
         } else {

@@ -1,10 +1,10 @@
 <?php
 
-namespace app\models;
+namespace app\models\entities;
 
-use app\models\DbModel;
+use app\models\Model;
 
-class News extends DbModel
+class News extends Model
 {
     public ?int $id;
     public ?string $title;
@@ -14,9 +14,5 @@ class News extends DbModel
     {
         $this->title = $title;
         $this->content = $content;
-    }
-    public static function getTableName()
-    {
-        return 'news';
     }
 }
