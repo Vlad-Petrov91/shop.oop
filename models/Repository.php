@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\engine\App;
 use app\engine\Db;
 use app\interfaces\IRepository;
 
@@ -15,21 +16,21 @@ abstract class Repository implements IRepository
     {
         $tableName = $this->getTableName();
         $sql = "SELECT * FROM {$tableName} WHERE {$name} = :value";
-        return Db::getInstance()->queryOneObject($sql, ['value' => $value], $this->getEntityClass());
+        return App::call()->db->queryOneObject($sql, ['value' => $value], $this->getEntityClass());
     }
 
     public function getCountWhere($name, $value)
     {
         $tableName = $this->getTableName();
         $sql = "SELECT COUNT(id) as `count` FROM `{$tableName}` WHERE {$name} = :value";
-        return Db::getInstance()->queryOne($sql, ['value' => $value])['count'];
+        return App::call()->db->queryOne($sql, ['value' => $value])['count'];
     }
 
     public function getOne($id)
     {
         $tableName = $this->getTableName();
         $sql = "SELECT * FROM {$tableName} WHERE id = :id";
-        return Db::getInstance()->queryOne($sql, ['id' => $id]);
+        return App::call()->db->queryOne($sql, ['id' => $id]);
         // return Db::getInstance()->queryOneObject($sql, ['id' => $id], static::class);
     }
     public function getOneObj($id)
@@ -37,13 +38,13 @@ abstract class Repository implements IRepository
         $tableName = $this->getTableName();
         $sql = "SELECT * FROM {$tableName} WHERE id = :id";
         // return Db::getInstance()->queryOne($sql, ['id' => $id]);
-        return Db::getInstance()->queryOneObject($sql, ['id' => $id], $this->getEntityClass());
+        return App::call()->db->queryOneObject($sql, ['id' => $id], $this->getEntityClass());
     }
     public function getAll()
     {
         $tableName = $this->getTableName();
         $sql = "SELECT * FROM {$tableName}";
-        return Db::getInstance()->queryAll($sql);
+        return App::call()->db->queryAll($sql);
     }
     public function save(Model $model)
     {
@@ -80,7 +81,7 @@ abstract class Repository implements IRepository
         //     //TODO собрать INSERT  пропустить id
         //     var_dump($key . "=>" . $value);
         // }
-        Db::getInstance()->execute($sql, $params);
+        App::call()->db->execute($sql, $params);
         return $this;
     }
 
@@ -102,7 +103,7 @@ abstract class Repository implements IRepository
         $tableName = $this->getTableName();
 
         $sql = "UPDATE `{$tableName}` SET {$colums} WHERE `id` = :id";
-        Db::getInstance()->execute($sql, $params);
+        App::call()->db->execute($sql, $params);
         return $this;
     }
     public function delete(Model $model)
@@ -110,12 +111,12 @@ abstract class Repository implements IRepository
         $id = $model->id;
         $tableName = $this->getTableName();
         $sql = "DELETE FROM `{$tableName}` WHERE `id` = :id";
-        return Db::getInstance()->execute($sql, ['id' => $id]);
+        return App::call()->db->execute($sql, ['id' => $id]);
     }
     public function getLimit($limit)
     {
         $tableName = static::getTableName();
         $sql = "SELECT * FROM {$tableName} LIMIT 0, ?";
-        return Db::getInstance()->queryLimit($sql, $limit);
+        return App::call()->db->queryLimit($sql, $limit);
     }
 }

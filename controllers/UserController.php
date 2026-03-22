@@ -3,20 +3,18 @@
 namespace app\controllers;
 
 use app\controllers\Controller;
-use app\engine\Request;
-use app\models\repositories\UserRepository;
-use app\models\User;
+use app\engine\App;
 
 class UserController extends Controller
 {
     public function actionLogin()
     {
-        $user = new UserRepository();
-        $login = $this->request->getParams()['login'];
-        $pass = $this->request->getParams()['password'];
-        if ($user->Auth($login, $pass)) {
+        $userRepository = App::call()->userRepository;
+        $login = App::call()->request->getParams()['login'];
+        $pass = App::call()->request->getParams()['password'];
+        if ($userRepository->Auth($login, $pass)) {
             header("Location: /");
-            die();
+            exit();
         } else {
             die("Не верный логин или пароль");
         }
@@ -26,7 +24,7 @@ class UserController extends Controller
         session_regenerate_id();
         session_destroy();
         header("Location: /");
-        die();
+        exit();
     }
 
     public function actionRegistration()

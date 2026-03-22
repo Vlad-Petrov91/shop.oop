@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\engine\App;
 use app\engine\Render;
 use app\models\repositories\CartRepository;
 use app\models\repositories\UserRepository;
@@ -14,12 +15,10 @@ abstract class Controller
     protected $action;
     protected $defaultAction = 'index';
     private $render;
-    protected $request;
 
-    public function __construct(IRender $render, $request)
+    public function __construct(IRender $render)
     {
         $this->render = $render;
-        $this->request = $request;
     }
 
     public function runAction($action)
@@ -35,15 +34,12 @@ abstract class Controller
 
     public function render($template, $params = [])
     {
-        $user = new UserRepository();
-        $cart = new CartRepository();
-        $session = new Session();
         return $this->renderTemplate('layouts/main', [
             'menu' => $this->renderTemplate('menu', [
-                'auth' => $user->isAuth(),
-                'user' => $user->getUserName(),
-                'countOfInCart' => $cart->getCountWhere('session', $session->getId()),
-                'page' => $this->request->getPageName(),
+                'auth' => App::call()->userRepository->isAuth(),
+                'user' => App::call()->userRepository->getUserName(),
+                'countOfInCart' => App::call()->cartRepository->getCountWhere('session', App::call()->session->getId()),
+                'page' => App::call()->request->getPageName(),
             ]),
             'content' => $this->renderTemplate($template, $params)
         ]);

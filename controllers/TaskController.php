@@ -23,6 +23,8 @@ class TaskController extends Controller
 
     public function actionIndex()
     {
+        var_dump($_SERVER['REQUEST_URI']);
+        var_dump(parse_url($_SERVER['REQUEST_URI']), PHP_URL_PATH);
         echo $this->render('task', $this->task());
     }
 }

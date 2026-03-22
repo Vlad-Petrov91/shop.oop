@@ -2,31 +2,36 @@
 
 namespace app\engine;
 
-use app\traits\TSingletone;
 use \PDO;
 
 class Db
 {
-    private $config = [
-        'driver' => 'mysql',
-        'host' => 'mysql',
-        'login' => 'root',
-        'password' => 'root',
-        'database' => 'shop',
-        'charset' => 'utf8',
-    ];
+    private string $driver;
+    private string $host;
+    private string $login;
+    private string $password;
+    private string $database;
+    private string $charset;
 
     private $connection = null; //PDO
 
-    use TSingletone;
+    public function __construct(string $driver, string $host, string $login, string $password, string $database, string $charset)
+    {
+        $this->driver = $driver;
+        $this->host = $host;
+        $this->login = $login;
+        $this->password = $password;
+        $this->database = $database;
+        $this->charset = $charset;
+    }
 
     private function getConnection()
     {
         if (is_null($this->connection)) {
             $this->connection = new \PDO(
                 $this->prepareDsnString(),
-                $this->config['login'],
-                $this->config['password']
+                $this->login,
+                $this->password
             );
             $this->connection->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
         }
@@ -42,10 +47,10 @@ class Db
     {
         return sprintf(
             "%s:host=%s;dbname=%s;charset=%s",
-            $this->config['driver'],
-            $this->config['host'],
-            $this->config['database'],
-            $this->config['charset']
+            $this->driver,
+            $this->host,
+            $this->database,
+            $this->charset
         );
     }
 
