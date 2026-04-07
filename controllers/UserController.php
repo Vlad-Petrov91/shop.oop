@@ -13,11 +13,21 @@ class UserController extends Controller
         $login = App::call()->request->getParams()['login'];
         $pass = App::call()->request->getParams()['password'];
         if ($userRepository->Auth($login, $pass)) {
-            header("Location: /");
-            exit();
+            // header("Location: /");
+            http_response_code(200); // response.ok = true
+            $responce = [
+                'status' => 'ok',
+                'login' => $login
+            ];
         } else {
-            die("Не верный логин или пароль");
+            http_response_code(401); // response.ok = false
+            $responce = [
+                'status' => 'error',
+                'message' => 'Invalid email or password'
+            ];
         }
+        echo json_encode($responce, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        exit;
     }
     public function actionLogout()
     {

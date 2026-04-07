@@ -3,8 +3,9 @@
 namespace app\models;
 
 use app\engine\App;
-use app\engine\Db;
 use app\interfaces\IRepository;
+use app\models\entities\Product;
+use app\models\repositories\ProductRepository;
 
 abstract class Repository implements IRepository
 {
@@ -19,6 +20,19 @@ abstract class Repository implements IRepository
         return App::call()->db->queryOneObject($sql, ['value' => $value], $this->getEntityClass());
     }
 
+    public function getWhereAll($name, $value)
+    {
+        $tableName = $this->getTableName();
+        $sql = "SELECT * FROM {$tableName} WHERE {$name} = :value";
+        return App::call()->db->queryAll($sql, ['value' => $value]);
+    }
+    public function getWhereLimit($name, $value, int $limit, int $offset = 0)
+    {
+        $tableName = $this->getTableName();
+        $sql = "SELECT * FROM {$tableName} WHERE {$name} = :value LIMIT :limit, :offset";
+        return App::call()->db->queryCategoryLimit($sql, $value, $limit, $offset);
+    }
+
     public function getCountWhere($name, $value)
     {
         $tableName = $this->getTableName();
@@ -31,13 +45,11 @@ abstract class Repository implements IRepository
         $tableName = $this->getTableName();
         $sql = "SELECT * FROM {$tableName} WHERE id = :id";
         return App::call()->db->queryOne($sql, ['id' => $id]);
-        // return Db::getInstance()->queryOneObject($sql, ['id' => $id], static::class);
     }
     public function getOneObj($id)
     {
         $tableName = $this->getTableName();
         $sql = "SELECT * FROM {$tableName} WHERE id = :id";
-        // return Db::getInstance()->queryOne($sql, ['id' => $id]);
         return App::call()->db->queryOneObject($sql, ['id' => $id], $this->getEntityClass());
     }
     public function getAll()
@@ -48,7 +60,7 @@ abstract class Repository implements IRepository
     }
     public function save(Model $model)
     {
-        if (!isset($model->id)) {
+        if ($model->isNew()) {
             $this->insert($model);
         } else {
             $this->update($model);
@@ -92,14 +104,12 @@ abstract class Repository implements IRepository
 
         foreach ($model->props as $key => $value) {
             if (!$value) continue;
-            $params["{$key}"] = $this->$key;
+            $params["{$key}"] = $model->$key;
             $colums[] .= "`{$key}` = :$key";
-            $model->props[$key] = false;
+            // $model->props[$key] = false;
         }
-
         $colums = implode(', ', $colums);
         $params['id'] = $model->id;
-
         $tableName = $this->getTableName();
 
         $sql = "UPDATE `{$tableName}` SET {$colums} WHERE `id` = :id";
@@ -113,10 +123,16 @@ abstract class Repository implements IRepository
         $sql = "DELETE FROM `{$tableName}` WHERE `id` = :id";
         return App::call()->db->execute($sql, ['id' => $id]);
     }
-    public function getLimit($limit)
+    public function getLimit($limit, $offset = 0)
     {
         $tableName = static::getTableName();
-        $sql = "SELECT * FROM {$tableName} LIMIT 0, ?";
-        return App::call()->db->queryLimit($sql, $limit);
+        $sql = "SELECT * FROM {$tableName} LIMIT ?, ?";
+        return App::call()->db->queryLimit($sql, $offset, $limit);
+    }
+    public function getRandomItems($limit)
+    {
+        $tableName = $this->getTableName();
+        $sql = "SELECT * FROM {$tableName} ORDER BY RAND() LIMIT ?, ?";
+        return App::call()->db->queryLimit($sql, 0, $limit);
     }
 }

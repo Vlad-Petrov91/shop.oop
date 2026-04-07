@@ -14,7 +14,7 @@ abstract class Model
             $this->props[$name] = true;
             $this->$name = $value;
         } else {
-            throw new Exception('Свойство отсутствует');
+            throw new Exception('Свойство set отсутствует');
         }
     }
 
@@ -23,7 +23,12 @@ abstract class Model
         if (isset($this->$name)) {
             return $this->$name;
         } else {
-            throw new Exception('Свойство отсутствует');
+            throw new Exception('Свойство get отсутствует');
         }
+    }
+
+    public function isNew(): bool
+    {
+        return !isset($this->id);
     }
 }

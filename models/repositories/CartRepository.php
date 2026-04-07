@@ -19,7 +19,7 @@ class CartRepository extends Repository
     }
     public function getCart($session)
     {
-        $sql = "SELECT catalog.id,catalog.name,catalog.price, cart.id AS cartId, cart.count FROM `cart` JOIN `catalog` ON cart.item_id=catalog.id WHERE cart.session = :session";
+        $sql = "SELECT products.id,products.name,products.price, products.image, cart.id AS cartId, cart.count FROM `cart` JOIN `products` ON cart.item_id=products.id WHERE cart.session = :session";
         return App::call()->db->queryAll($sql, ['session' => $session]);
     }
 }

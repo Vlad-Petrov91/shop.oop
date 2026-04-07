@@ -77,10 +77,21 @@ class Db
     {
         return $this->query($sql, $params)->fetchAll();
     }
-    public function queryLimit($sql, $limit)
+    public function queryLimit($sql, $offset, $limit)
     {
         $STH = $this->getConnection()->prepare($sql);
-        $STH->bindValue(1, $limit, PDO::PARAM_INT);
+        $STH->bindValue(1, $offset, PDO::PARAM_INT);
+        $STH->bindValue(2, $limit, PDO::PARAM_INT);
+        $STH->execute();
+        return $STH->fetchAll();
+    }
+
+    public function queryCategoryLimit($sql, $category_id, $offset, $limit)
+    {
+        $STH = $this->getConnection()->prepare($sql);
+        $STH->bindValue(':value', $category_id);
+        $STH->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $STH->bindValue(':limit', $limit, PDO::PARAM_INT);
         $STH->execute();
         return $STH->fetchAll();
     }

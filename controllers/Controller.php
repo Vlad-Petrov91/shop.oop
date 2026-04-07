@@ -39,7 +39,8 @@ abstract class Controller
                 'auth' => App::call()->userRepository->isAuth(),
                 'user' => App::call()->userRepository->getUserName(),
                 'countOfInCart' => App::call()->cartRepository->getCountWhere('session', App::call()->session->getId()),
-                'page' => App::call()->request->getPageName(),
+                'pageName' => App::call()->request->getPageName(),
+                'page' => '1',
             ]),
             'content' => $this->renderTemplate($template, $params)
         ]);

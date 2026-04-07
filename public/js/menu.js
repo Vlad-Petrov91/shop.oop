@@ -1,0 +1,55 @@
+/**
+ * Toggle menu visibility by clicking elements with `data-menu-toggle`.
+ *
+ * Usage:
+ *  <button data-menu-toggle="#mainMenu">Menu</button>
+ *  <nav id="mainMenu" class="menu"> ... </nav>
+ *
+ * Minimal CSS:
+ *  .menu { display: none; }
+ *  .menu.is-open { display: block; }
+ */
+// (function () {
+//     'use strict';
+
+//     document.addEventListener('click', function (e) {
+//         const toggle = e.target.closest('[data-menu-toggle]');
+//         if (toggle) {
+//             e.preventDefault();
+//             const selector = toggle.getAttribute('data-menu-toggle');
+//             const menu = document.querySelector(selector);
+//             if (!menu) return;
+//             menu.classList.toggle('is-open');
+//             return;
+//         }
+
+//         // Click outside — close any open menus
+//         document.querySelectorAll('.is-open').forEach(function (m) {
+//             if (!m.contains(e.target)) m.classList.remove('is-open');
+//         });
+//     });
+
+//     // Close menus on Escape
+//     document.addEventListener('keydown', function (e) {
+//         if (e.key === 'Escape') {
+//             document.querySelectorAll('.is-open').forEach(function (m) {
+//                 m.classList.remove('is-open');
+//             });
+//         }
+//     });
+// })();
+
+// const menuButton = document.getElementById('menuButton');
+// const menuPanel = document.getElementById('menuPanel');
+
+// menuButton.addEventListener('click', function (e) {
+//     e.stopPropagation();
+//     menuPanel.classList.toggle('active');
+// });
+
+// // Закрытие меню при клике вне его
+// document.addEventListener('click', function (e) {
+//     if (!menuPanel.contains(e.target) && e.target !== menuButton) {
+//         menuPanel.classList.remove('active');
+//     }
+// });
