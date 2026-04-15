@@ -4,7 +4,6 @@ namespace app\controllers;
 
 use app\controllers\Controller;
 use app\engine\App;
-use app\models\Product;
 use app\models\repositories\ProductRepository;
 
 class ProductController extends Controller
@@ -14,8 +13,6 @@ class ProductController extends Controller
     {
 
         $catalog = App::call()->productRepository;
-        //  $catalog = $catalog->getAll();
-        // $catalog = $catalog->
         $catalog = $catalog->getRandomItems(6);
         echo $this->render('index', $params = [
             'catalog' => $catalog,
@@ -27,7 +24,6 @@ class ProductController extends Controller
         $page = $_GET['page'] ?? 1;
 
         $catalog = new ProductRepository();
-        //  $catalog = $catalog->getAll();
         $countPages = ceil($catalog->getCountOfProducts() / 9);
         if ($page < 1)  $page = 1;
         if ($page > $countPages)  $page = $countPages;
@@ -43,11 +39,6 @@ class ProductController extends Controller
     {
         $id = $_GET['id'];
         $product = new ProductRepository();
-        //$params['product'] = (new Product())->getOne($id);
-        // var_dump(Product::getOneObj($id));
-        // echo PHP_EOL;
-        // var_dump(Product::getOne($id));
-        // die();
         $params['product'] = $product->getOne($id);
         echo $this->render('product/card', $params);
     }

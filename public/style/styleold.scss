@@ -15,16 +15,21 @@ $color-gray-light: #9f9f9f;
 $color-gray-lighter: #575757;
 $color-gray-lightest: #a4a4a4;
 $color-bg-dark: #222;
+$color-bg-card: #f8f8f8;
 $color-bg-light: #f1e4e6;
 $color-bg-gray: #f7f7f7;
 $color-bg-footer: #222224;
 $color-white: #fff;
 $color-black: #000;
 $color-border: #eaeaea;
-$color-shadow: rgba(0, 0, 0, .1);
-$color-overlay: rgba(0, 0, 0, .5);
-$color-cart-shadow: rgba(229, 229, 229, .9);
+$color-shadow: rgba(0, 0, 0, 0.1);
+$color-overlay: rgba(0, 0, 0, 0.5);
+$color-cart-shadow: rgba(229, 229, 229, 0.9);
 $color-checkout-bg: #f5f3f3;
+$color-footer-text: #fbfbfb;
+$color-filter-text: #6f6e6e;
+$color-scrollbar-track: #f1f1f1;
+$color-scrollbar-thumb-hover: #d15d6f;
 
 // Шрифты
 $font-family-base: "Lato", sans-serif;
@@ -50,10 +55,30 @@ $breakpoint-mobile: 425px;
 
 // Размеры карточек
 $card-width: 360px;
-$card-height: 581px;
+$card-height: 630px;
 
 // Z-index
 $z-index-header: 1000;
+$z-index-popup: 2000;
+$z-index-overlay: 1999;
+
+// Размеры popup
+$popup-width: 320px;
+$popup-width-mobile: 280px;
+
+/* ============================================
+   MIXINS
+   ============================================ */
+
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin transition($property: all, $duration: 0.3s, $easing: ease) {
+    transition: $property $duration $easing;
+}
 
 /* ============================================
    БАЗОВЫЕ СТИЛИ
@@ -93,10 +118,6 @@ $z-index-header: 1000;
         list-style-type: none;
         display: flex;
         align-items: center;
-
-        // li:first-child {
-        //     padding-right: 10px;
-        // }
     }
 
     &__menu_elements {
@@ -105,9 +126,6 @@ $z-index-header: 1000;
         display: flex;
         align-items: center;
 
-        // li:nth-child(2) {
-        //     padding: 0 33px;
-        // }
         &_cart {
             position: relative;
             right: 10px;
@@ -121,43 +139,6 @@ $z-index-header: 1000;
             background-color: $color-primary;
             color: $color-white;
             font-size: $spacing-md;
-        }
-    }
-
-    &__menu_popup {
-        position: absolute;
-        top: $header-height;
-        width: 250px;
-        background-color: $color-white;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        box-shadow: 0 2px 10px $color-shadow;
-
-        li {
-            list-style-type: none;
-            padding: $spacing-lg 0;
-
-            a {
-                color: $color-primary;
-                text-decoration: none;
-                font-size: $spacing-md;
-                line-height: 19px;
-            }
-        }
-
-        &_button {
-            display: flex;
-            flex-direction: row-reverse;
-            padding: $spacing-lg;
-        }
-
-        &_list {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            padding-bottom: $spacing-xl;
         }
     }
 
@@ -193,94 +174,435 @@ $z-index-header: 1000;
     }
 }
 
-//animation menu
+
+/* ============================================
+  new style for popup menu
+   ============================================ */
+
+
+
+
+/* ============================================
+   ФОРМА АВТОРИЗАЦИИ
+   ============================================ */
+
+// Дополнительные переменные
+$auth-modal-width: 450px;
+$auth-modal-width-mobile: 95%;
+$color-error: #e74c3c;
+$color-success: #2ecc71;
+
+/* Модальное окно */
+.auth-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    &.active {
+        display: flex;
+        animation: authFadeIn 0.3s ease;
+    }
+}
+
+/* Оверлей */
+.auth-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: $color-overlay;
+    cursor: pointer;
+}
+
+/* Контейнер формы */
+.auth-modal__container {
+    position: relative;
+    width: $auth-modal-width;
+    max-width: 90%;
+    background-color: $color-white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: authSlideInUp 0.4s ease;
+}
+
+/* Заголовок */
+.auth-modal__header {
+    background: $color-primary;
+    padding: $spacing-lg $spacing-xl;
+    text-align: center;
+    position: relative;
+
+    h2 {
+        color: $color-white;
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+    }
+}
+
+/* Кнопка закрытия */
+.auth-modal__close {
+    position: absolute;
+    top: 50%;
+    right: $spacing-lg;
+    transform: translateY(-50%);
+    color: $color-white;
+    cursor: pointer;
+    @include transition(transform, 0.2s, ease);
+
+    svg {
+        stroke: $color-white;
+    }
+
+    &:hover {
+        transform: translateY(-50%) rotate(90deg);
+    }
+}
+
+/* Табы */
+.auth-modal__tabs {
+    display: flex;
+    border-bottom: 1px solid $color-border;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: $spacing-md;
+    background: none;
+    border: none;
+    font-size: $spacing-md;
+    font-weight: 600;
+    color: $color-gray;
+    cursor: pointer;
+    @include transition(all, 0.3s, ease);
+    position: relative;
+
+    &.active {
+        color: $color-primary;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: $color-primary;
+        }
+    }
+
+    &:hover {
+        background-color: rgba($color-primary, 0.05);
+    }
+}
+
+/* Тело формы */
+.auth-modal__body {
+    padding: $spacing-xl;
+}
+
+/* Формы */
+.auth-form {
+    display: none;
+
+    &.active {
+        display: block;
+        animation: authFadeIn 0.3s ease;
+    }
+}
+
+/* Группы полей */
+.form-group {
+    margin-bottom: $spacing-lg;
+
+    label {
+        display: block;
+        margin-bottom: $spacing-sm;
+        font-size: 14px;
+        font-weight: 600;
+        color: $color-secondary;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid $color-border;
+        border-radius: 8px;
+        font-size: 14px;
+        @include transition(all, 0.3s, ease);
+        box-sizing: border-box;
+
+        &:focus {
+            outline: none;
+            border-color: $color-primary;
+            box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+        }
+
+        &.error {
+            border-color: $color-error;
+        }
+    }
+}
+
+/* Сообщения об ошибках */
+.error-message {
+    color: $color-error;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+
+    &.visible {
+        display: block;
+    }
+}
+
+/* Кнопка отправки */
+.auth-submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: $color-primary;
+    border: none;
+    border-radius: 8px;
+    color: $color-white;
+    font-size: $spacing-md;
+    font-weight: 600;
+    cursor: pointer;
+    @include transition(all, 0.3s, ease);
+    margin-top: $spacing-lg;
+
+    &:hover {
+        background: darken($color-primary, 10%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba($color-primary, 0.3);
+    }
+
+    &:disabled {
+        background: $color-gray-light;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* Ссылки */
+.auth-links {
+    text-align: center;
+    margin-top: $spacing-lg;
+    padding-top: $spacing-lg;
+    border-top: 1px solid $color-border;
+
+    a {
+        color: $color-primary;
+        text-decoration: none;
+        font-size: 14px;
+        @include transition(color, 0.3s, ease);
+
+        &:hover {
+            text-decoration: underline;
+            color: darken($color-primary, 10%);
+        }
+    }
+}
+
+/* Разделитель */
+.auth-divider {
+    text-align: center;
+    margin: $spacing-lg 0;
+    position: relative;
+
+    span {
+        background: $color-white;
+        padding: 0 $spacing-md;
+        color: $color-gray;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: $color-border;
+    }
+}
+
+/* Социальные кнопки */
+.social-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.social-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid $color-border;
+    background: $color-white;
+    cursor: pointer;
+    @include flex-center;
+    @include transition(all, 0.3s, ease);
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: $color-primary;
+    }
+}
+
+/* Анимации */
+@keyframes authFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes authSlideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: $breakpoint-mobile) {
+    .auth-modal__container {
+        width: $auth-modal-width-mobile;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .auth-modal__body {
+        padding: $spacing-lg;
+    }
+
+    .form-group input {
+        padding: 10px 12px;
+    }
+
+    .social-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+
+
+
+
+
+/*= ===========================
+  end
+   ============================================ */
 
 /* ============================================
    POPUP МЕНЮ (Выезжает справа)
    ============================================ */
 
-/* Базовые стили для popup */
 .header__menu_popup {
     position: fixed;
     top: 0;
-    right: -320px;
-    /* Скрыто за правым краем */
-    width: 320px;
+    right: -$popup-width;
+    width: $popup-width;
     height: 450px;
-    background-color: #fff;
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 2000;
-    transition: right 0.3s ease-in-out;
+    background-color: $color-white;
+    box-shadow: -2px 0 10px $color-shadow;
+    z-index: $z-index-popup;
+    @include transition(right, 0.3s, ease-in-out);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+
+    &.active {
+        right: 0;
+    }
+
+    // Анимация для пунктов меню
+    &.active .header__menu_popup_list li {
+        animation: slideInFromRight 0.3s ease-in-out forwards;
+        opacity: 0;
+    }
+
+    // Цикл для задержек анимации
+    &.active .header__menu_popup_list li {
+        @for $i from 1 through 6 {
+            &:nth-child(#{$i}) {
+                animation-delay: $i * 0.05s;
+            }
+        }
+    }
+
+    &.active .header__menu_popup_button {
+        opacity: 1;
+        transform: rotate(0deg);
+    }
+
+    // Стили для скроллбара
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $color-scrollbar-track;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $color-primary;
+        border-radius: 5px;
+
+        &:hover {
+            background: $color-scrollbar-thumb-hover;
+        }
+    }
 }
 
-/* Активное состояние - меню видно */
-.header__menu_popup.active {
-    right: 0;
-    /* Выезжает на экран */
-}
-
-/* Анимация с задержкой для элементов внутри */
-.header__menu_popup.active .header__menu_popup_list li {
-    animation: slideInFromRight 0.3s ease-in-out forwards;
-    opacity: 0;
-}
-
-/* Задержки для каждого пункта меню */
-.header__menu_popup.active .header__menu_popup_list li:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.header__menu_popup.active .header__menu_popup_list li:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.header__menu_popup.active .header__menu_popup_list li:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.header__menu_popup.active .header__menu_popup_list li:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-.header__menu_popup.active .header__menu_popup_list li:nth-child(5) {
-    animation-delay: 0.25s;
-}
-
-.header__menu_popup.active .header__menu_popup_list li:nth-child(6) {
-    animation-delay: 0.3s;
-}
-
-/* Кнопка закрытия с анимацией */
+/* Кнопка закрытия */
 .header__menu_popup_button {
     display: flex;
     justify-content: flex-end;
-    padding: 20px;
+    padding: $spacing-lg;
     opacity: 0;
     transform: rotate(-90deg);
-    transition: all 0.3s ease 0.05s;
-}
+    @include transition(all, 0.3s, ease);
+    transition-delay: 0.05s;
 
-.header__menu_popup.active .header__menu_popup_button {
-    opacity: 1;
-    transform: rotate(0deg);
-}
+    .btn-reset {
+        width: 30px;
+        height: 30px;
+        @include flex-center;
+        cursor: pointer;
+        @include transition(transform, 0.2s, ease);
 
-/* Стили для кнопки закрытия */
-.header__menu_popup_button .btn-reset {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.header__menu_popup_button .btn-reset:hover {
-    transform: rotate(90deg);
+        &:hover {
+            transform: rotate(90deg);
+        }
+    }
 }
 
 /* Список меню */
@@ -290,69 +612,68 @@ $z-index-header: 1000;
     margin: 40px 0 0;
     display: flex;
     flex-direction: column;
+
+    li {
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        transform: translateX(20px);
+
+        a {
+            display: block;
+            padding: 15px $spacing-xl;
+            font-size: $spacing-md;
+            font-weight: 500;
+            color: $color-secondary;
+            text-decoration: none;
+            @include transition(all, 0.2s, ease);
+            position: relative;
+
+            &:hover {
+                background-color: $color-bg-card;
+                color: $color-primary;
+                padding-left: 40px;
+
+                &::before {
+                    width: 20px;
+                }
+            }
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: $spacing-xl;
+                bottom: 12px;
+                width: 0;
+                height: 2px;
+                background-color: $color-primary;
+                @include transition(width, 0.2s, ease);
+            }
+        }
+    }
 }
 
-.header__menu_popup_list li {
-    margin: 0;
-    padding: 0;
-    opacity: 0;
-    transform: translateX(20px);
-}
-
-.header__menu_popup_list li a {
-    display: block;
-    padding: 15px 30px;
-    font-size: 16px;
-    font-weight: 500;
-    color: #222;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-/* Эффект при наведении на пункт меню */
-.header__menu_popup_list li a:hover {
-    background-color: #f8f8f8;
-    color: #f16d7f;
-    padding-left: 40px;
-}
-
-/* Анимация подчеркивания при наведении */
-.header__menu_popup_list li a::before {
-    content: '';
-    position: absolute;
-    left: 30px;
-    bottom: 12px;
-    width: 0;
-    height: 2px;
-    background-color: #f16d7f;
-    transition: width 0.2s ease;
-}
-
-.header__menu_popup_list li a:hover::before {
-    width: 20px;
-}
-
-/* Оверлей (затемнение фона) */
+/* Оверлей */
 .header__menu_overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1999;
+    background-color: $color-overlay;
+    z-index: $z-index-overlay;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    @include transition(opacity, 0.3s, ease);
+    transition-property: opacity, visibility;
+
+    &.active {
+        opacity: 1;
+        visibility: visible;
+    }
 }
 
-.header__menu_overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Анимация для элементов меню */
+/* Анимации */
 @keyframes slideInFromRight {
     0% {
         opacity: 0;
@@ -365,53 +686,9 @@ $z-index-header: 1000;
     }
 }
 
-/* Анимация для оверлея */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-/* Стили для скролла внутри меню */
-.header__menu_popup::-webkit-scrollbar {
-    width: 5px;
-}
-
-.header__menu_popup::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.header__menu_popup::-webkit-scrollbar-thumb {
-    background: #f16d7f;
-    border-radius: 5px;
-}
-
-.header__menu_popup::-webkit-scrollbar-thumb:hover {
-    background: #d15d6f;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 425px) {
-    .header__menu_popup {
-        width: 280px;
-        right: -280px;
-    }
-
-    .header__menu_popup_list li a {
-        padding: 12px 20px;
-        font-size: 14px;
-    }
-}
-
-
-
-
-//animation menu
-
+/* ============================================
+   ДОПОЛНИТЕЛЬНЫЕ СТИЛИ
+   ============================================ */
 
 .menu_el_padding {
     padding: 0 33px;
@@ -472,7 +749,8 @@ h1 {
 
     &__card {
         position: relative;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        @include transition(transform, 0.3s, ease);
+        transition-property: transform, box-shadow;
 
         img {
             width: 100%;
@@ -541,6 +819,101 @@ h1 {
     }
 }
 
+// ВРЕММЕННО
+
+
+.product_card_image {
+    position: relative;
+    overflow: hidden;
+}
+
+.product_card_image img {
+    width: 100%;
+    display: block;
+    transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+.product_card_image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0);
+    transition: background 0.4s ease;
+    pointer-events: none;
+}
+
+.product_card_overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+.quick_view_btn,
+.add_to_cart_btn {
+    // padding: 10px 20px;
+    background: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 149px;
+    height: 44px;
+    border: 1px solid #FFFFFF;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+
+    img {
+        color: #FFFFFF;
+        width: 26px;
+        height: 23px;
+    }
+}
+
+.quick_view_btn:hover,
+.add_to_cart_btn:hover {
+    // background: #f16d7f;
+
+    transform: translateY(-2px);
+}
+
+/* Эффект при наведении на карточку */
+.product_card:hover .product_card_image::after {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.product_card:hover .product_card_image img {
+    transform: scale(1.08);
+    filter: brightness(0.7);
+}
+
+.product_card:hover .product_card_overlay {
+    opacity: 1;
+}
+
+
+
+
+// ВРЕМЕННО
+
+
+
+
+// .add_to_cart_btn {
+//     all: unset;
+//     cursor: pointer;
+//     color: white;
+// }
+
 .content__product_cards {
     margin-top: $spacing-3xl;
     margin-bottom: $spacing-3xl;
@@ -553,6 +926,7 @@ h1 {
 
 .product_card {
     text-align: left;
+    background-color: $color-bg-card;
 
     &_information {
         padding-left: $spacing-md;
@@ -600,6 +974,13 @@ h1 {
     line-height: 19px;
     color: $color-primary-dark;
     border: 1px solid #ff6a6a;
+    @include transition(all, 0.3s, ease);
+
+    &:hover {
+        background-color: $color-primary;
+        color: $color-white;
+        border-color: $color-primary;
+    }
 }
 
 /* ============================================
@@ -639,15 +1020,12 @@ h1 {
         text-align: center;
         color: $color-gray-lighter;
 
-        >a {
+        &_article {
             text-decoration: none;
             font-weight: 300;
             font-size: $spacing-md;
             line-height: 19px;
             color: $color-gray-lighter;
-        }
-
-        a {
             padding-right: 7px;
             padding-left: 7px;
         }
@@ -657,18 +1035,18 @@ h1 {
             padding-left: 7px;
         }
 
-        :nth-child(2) {
-            color: $color-primary;
-        }
-
-        :nth-child(7) {
+        :first-child {
             padding-right: 0;
         }
 
-        :nth-child(8) {
+        :last-child {
             padding-left: 0;
         }
     }
+}
+
+.page_active {
+    color: $color-primary;
 }
 
 .page__way {
@@ -712,7 +1090,7 @@ h1 {
         font-weight: normal;
         font-size: 14px;
         line-height: 17px;
-        color: #6f6e6e;
+        color: $color-filter-text;
         margin: auto;
 
         img {
@@ -792,10 +1170,8 @@ h1 {
 .back {
     width: 47px;
     height: 47px;
-    background-color: rgba(42, 42, 42, .15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: rgba(42, 42, 42, 0.15);
+    @include flex-center;
 
     img {
         height: 21px;
@@ -820,9 +1196,7 @@ h1 {
     color: $color-primary-dark;
     width: 211px;
     height: 47px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex-center;
     margin: auto;
     position: relative;
     box-sizing: border-box;
@@ -1052,7 +1426,7 @@ footer {
                 font-weight: normal;
                 font-size: 19.96px;
                 line-height: 24px;
-                color: #fbfbfb;
+                color: $color-footer-text;
                 margin-top: $spacing-lg;
             }
 
@@ -1062,7 +1436,7 @@ footer {
                 font-size: 13.972px;
                 line-height: 17px;
                 text-align: center;
-                color: #fbfbfb;
+                color: $color-footer-text;
                 margin-top: $spacing-md;
             }
         }
@@ -1140,7 +1514,7 @@ footer {
         &_copyright {
             font-size: $spacing-md;
             line-height: 19px;
-            color: #fbfbfb;
+            color: $color-footer-text;
         }
 
         &_social_networks {
@@ -1179,9 +1553,7 @@ footer {
     width: $spacing-2xl;
     height: $spacing-2xl;
     background: $color-white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex-center;
 
     &:hover {
         fill: $color-white;
@@ -1336,6 +1708,12 @@ footer {
             padding-right: $spacing-2xl;
         }
     }
+
+    // Адаптивность popup для планшетов
+    .header__menu_popup {
+        width: $popup-width;
+        right: -$popup-width;
+    }
 }
 
 /* ============================================
@@ -1419,6 +1797,17 @@ footer {
             flex-direction: column;
             margin-bottom: 41px;
         }
+    }
+
+    // Адаптивность popup для мобильных
+    .header__menu_popup {
+        width: $popup-width-mobile;
+        right: -$popup-width-mobile;
+    }
+
+    .header__menu_popup_list li a {
+        padding: 12px $spacing-lg;
+        font-size: 14px;
     }
 
     .catalog {

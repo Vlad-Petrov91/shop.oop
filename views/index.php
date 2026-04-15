@@ -48,7 +48,7 @@
                         <div class="product_card_image">
                             <img src="/img/catalog/<?= $item['image'] ?>" alt="<?= $item['image'] ?>">
                             <div class="product_card_overlay">
-                                <button class="add_to_cart_btn" data-id="<?= $item['id'] ?>" data-count="1" data-price="<?= $item['price'] ?>"><img src="/img/cart.svg" alt="Add to Cart">Add to cart</button>
+                                <button class="add_to_cart_btn" data-id="<?= $item['id'] ?>" data-count="1" data-price="<?= $item['price'] ?>"><img src="/img/add_to_cart.png" alt="Add to Cart">Add to cart</button>
                             </div>
                         </div>
                         <div class="product_card_information">

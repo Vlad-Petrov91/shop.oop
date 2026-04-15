@@ -14,11 +14,10 @@ $color-gray: #5d5d5d;
 $color-gray-light: #9f9f9f;
 $color-gray-lighter: #575757;
 $color-gray-lightest: #a4a4a4;
-$color-bg-dark: #222;
-$color-bg-card: #f8f8f8;
 $color-bg-light: #f1e4e6;
 $color-bg-gray: #f7f7f7;
 $color-bg-footer: #222224;
+$color-bg-card: #f8f8f8;
 $color-white: #fff;
 $color-black: #000;
 $color-border: #eaeaea;
@@ -30,6 +29,8 @@ $color-footer-text: #fbfbfb;
 $color-filter-text: #6f6e6e;
 $color-scrollbar-track: #f1f1f1;
 $color-scrollbar-thumb-hover: #d15d6f;
+$color-error: #e74c3c;
+$color-success: #2ecc71;
 
 // Шрифты
 $font-family-base: "Lato", sans-serif;
@@ -38,6 +39,8 @@ $font-family-base: "Lato", sans-serif;
 $container-width: 1140px;
 $header-height: 75px;
 $footer-height: 79px;
+$marker-height: 92px;
+$marker-width: 12px;
 
 // Отступы
 $spacing-xs: 4px;
@@ -61,10 +64,20 @@ $card-height: 630px;
 $z-index-header: 1000;
 $z-index-popup: 2000;
 $z-index-overlay: 1999;
+$z-index-modal: 2100;
 
 // Размеры popup
 $popup-width: 320px;
 $popup-width-mobile: 280px;
+$popup-height: 450px;
+
+// Размеры модального окна
+$auth-modal-width: 450px;
+$auth-modal-width-mobile: 95%;
+
+// Кнопки
+$btn-height: 44px;
+$btn-width: 149px;
 
 /* ============================================
    MIXINS
@@ -78,6 +91,20 @@ $popup-width-mobile: 280px;
 
 @mixin transition($property: all, $duration: 0.3s, $easing: ease) {
     transition: $property $duration $easing;
+}
+
+@mixin hover-scale($scale: 1.05) {
+    &:hover {
+        transform: scale($scale);
+    }
+}
+
+@mixin absolute-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 /* ============================================
@@ -103,7 +130,7 @@ $popup-width-mobile: 280px;
     &__top {
         position: fixed;
         width: 100%;
-        background: $color-bg-dark;
+        background: $color-secondary;
         z-index: $z-index-header;
         box-shadow: 0 2px 10px $color-shadow;
 
@@ -142,18 +169,12 @@ $popup-width-mobile: 280px;
         }
     }
 
-    &__menu_article {
-        text-decoration: none;
-    }
-
     &__bot {
         background: $color-bg-light;
         padding-top: $header-height;
 
         &_dark {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+            @include absolute-cover;
             background: $color-overlay;
         }
 
@@ -174,23 +195,173 @@ $popup-width-mobile: 280px;
     }
 }
 
-
 /* ============================================
-  new style for popup menu
+   POPUP МЕНЮ (Выезжает справа)
    ============================================ */
 
+.header__menu_popup {
+    position: fixed;
+    top: 0;
+    right: -$popup-width;
+    width: $popup-width;
+    height: $popup-height;
+    background-color: $color-white;
+    box-shadow: -2px 0 10px $color-shadow;
+    z-index: $z-index-popup;
+    @include transition(right, 0.3s, ease-in-out);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
 
+    &.active {
+        right: 0;
+    }
 
+    &.active & {
+        &_list li {
+            animation: slideInFromRight 0.3s ease-in-out forwards;
+            opacity: 0;
+        }
+
+        &_button {
+            opacity: 1;
+            transform: rotate(0deg);
+        }
+    }
+
+    // Цикл для задержек анимации
+    @for $i from 1 through 6 {
+        &.active .header__menu_popup_list li:nth-child(#{$i}) {
+            animation-delay: $i * 0.05s;
+        }
+    }
+
+    // Стили для скроллбара
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: $color-scrollbar-track;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: $color-primary;
+        border-radius: 5px;
+
+        &:hover {
+            background: $color-scrollbar-thumb-hover;
+        }
+    }
+}
+
+/* Кнопка закрытия */
+.header__menu_popup_button {
+    display: flex;
+    justify-content: flex-end;
+    padding: $spacing-lg;
+    opacity: 0;
+    transform: rotate(-90deg);
+    @include transition(all, 0.3s, ease);
+    transition-delay: 0.05s;
+
+    .btn-reset {
+        width: 30px;
+        height: 30px;
+        @include flex-center;
+        cursor: pointer;
+        @include transition(transform, 0.2s, ease);
+
+        &:hover {
+            transform: rotate(90deg);
+        }
+    }
+}
+
+/* Список меню */
+.header__menu_popup_list {
+    list-style: none;
+    padding: 0;
+    margin: 40px 0 0;
+    display: flex;
+    flex-direction: column;
+
+    li {
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        transform: translateX(20px);
+
+        a {
+            display: block;
+            padding: 15px $spacing-xl;
+            font-size: $spacing-md;
+            font-weight: 500;
+            color: $color-secondary;
+            text-decoration: none;
+            @include transition(all, 0.2s, ease);
+            position: relative;
+
+            &:hover {
+                background-color: $color-bg-card;
+                color: $color-primary;
+                padding-left: 40px;
+
+                &::before {
+                    width: 20px;
+                }
+            }
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: $spacing-xl;
+                bottom: 12px;
+                width: 0;
+                height: 2px;
+                background-color: $color-primary;
+                @include transition(width, 0.2s, ease);
+            }
+        }
+    }
+}
+
+/* Оверлей */
+.header__menu_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: $color-overlay;
+    z-index: $z-index-overlay;
+    opacity: 0;
+    visibility: hidden;
+    @include transition(opacity, 0.3s, ease);
+    transition-property: opacity, visibility;
+
+    &.active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* Анимации */
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 
 /* ============================================
    ФОРМА АВТОРИЗАЦИИ
    ============================================ */
-
-// Дополнительные переменные
-$auth-modal-width: 450px;
-$auth-modal-width-mobile: 95%;
-$color-error: #e74c3c;
-$color-success: #2ecc71;
 
 /* Модальное окно */
 .auth-modal {
@@ -199,7 +370,7 @@ $color-success: #2ecc71;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2100;
+    z-index: $z-index-modal;
     display: none;
     align-items: center;
     justify-content: center;
@@ -212,11 +383,7 @@ $color-success: #2ecc71;
 
 /* Оверлей */
 .auth-modal__overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    @include absolute-cover;
     background-color: $color-overlay;
     cursor: pointer;
 }
@@ -490,202 +657,6 @@ $color-success: #2ecc71;
     }
 }
 
-/* Адаптивность для мобильных */
-@media (max-width: $breakpoint-mobile) {
-    .auth-modal__container {
-        width: $auth-modal-width-mobile;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-
-    .auth-modal__body {
-        padding: $spacing-lg;
-    }
-
-    .form-group input {
-        padding: 10px 12px;
-    }
-
-    .social-btn {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-
-
-
-
-
-/*= ===========================
-  end
-   ============================================ */
-
-/* ============================================
-   POPUP МЕНЮ (Выезжает справа)
-   ============================================ */
-
-.header__menu_popup {
-    position: fixed;
-    top: 0;
-    right: -$popup-width;
-    width: $popup-width;
-    height: 450px;
-    background-color: $color-white;
-    box-shadow: -2px 0 10px $color-shadow;
-    z-index: $z-index-popup;
-    @include transition(right, 0.3s, ease-in-out);
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-
-    &.active {
-        right: 0;
-    }
-
-    // Анимация для пунктов меню
-    &.active .header__menu_popup_list li {
-        animation: slideInFromRight 0.3s ease-in-out forwards;
-        opacity: 0;
-    }
-
-    // Цикл для задержек анимации
-    &.active .header__menu_popup_list li {
-        @for $i from 1 through 6 {
-            &:nth-child(#{$i}) {
-                animation-delay: $i * 0.05s;
-            }
-        }
-    }
-
-    &.active .header__menu_popup_button {
-        opacity: 1;
-        transform: rotate(0deg);
-    }
-
-    // Стили для скроллбара
-    &::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: $color-scrollbar-track;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: $color-primary;
-        border-radius: 5px;
-
-        &:hover {
-            background: $color-scrollbar-thumb-hover;
-        }
-    }
-}
-
-/* Кнопка закрытия */
-.header__menu_popup_button {
-    display: flex;
-    justify-content: flex-end;
-    padding: $spacing-lg;
-    opacity: 0;
-    transform: rotate(-90deg);
-    @include transition(all, 0.3s, ease);
-    transition-delay: 0.05s;
-
-    .btn-reset {
-        width: 30px;
-        height: 30px;
-        @include flex-center;
-        cursor: pointer;
-        @include transition(transform, 0.2s, ease);
-
-        &:hover {
-            transform: rotate(90deg);
-        }
-    }
-}
-
-/* Список меню */
-.header__menu_popup_list {
-    list-style: none;
-    padding: 0;
-    margin: 40px 0 0;
-    display: flex;
-    flex-direction: column;
-
-    li {
-        margin: 0;
-        padding: 0;
-        opacity: 0;
-        transform: translateX(20px);
-
-        a {
-            display: block;
-            padding: 15px $spacing-xl;
-            font-size: $spacing-md;
-            font-weight: 500;
-            color: $color-secondary;
-            text-decoration: none;
-            @include transition(all, 0.2s, ease);
-            position: relative;
-
-            &:hover {
-                background-color: $color-bg-card;
-                color: $color-primary;
-                padding-left: 40px;
-
-                &::before {
-                    width: 20px;
-                }
-            }
-
-            &::before {
-                content: '';
-                position: absolute;
-                left: $spacing-xl;
-                bottom: 12px;
-                width: 0;
-                height: 2px;
-                background-color: $color-primary;
-                @include transition(width, 0.2s, ease);
-            }
-        }
-    }
-}
-
-/* Оверлей */
-.header__menu_overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: $color-overlay;
-    z-index: $z-index-overlay;
-    opacity: 0;
-    visibility: hidden;
-    @include transition(opacity, 0.3s, ease);
-    transition-property: opacity, visibility;
-
-    &.active {
-        opacity: 1;
-        visibility: visible;
-    }
-}
-
-/* Анимации */
-@keyframes slideInFromRight {
-    0% {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 /* ============================================
    ДОПОЛНИТЕЛЬНЫЕ СТИЛИ
    ============================================ */
@@ -706,8 +677,8 @@ $color-success: #2ecc71;
 }
 
 .marker {
-    width: 12px;
-    height: 92px;
+    width: $marker-width;
+    height: $marker-height;
     background: $color-primary;
     margin-right: $spacing-md;
     margin-left: 63px;
@@ -779,10 +750,7 @@ h1 {
         height: 50px;
         top: 50%;
         left: 50%;
-        margin-right: -50%;
         transform: translate(-50%, -50%);
-        font-style: normal;
-        font-weight: normal;
         font-size: $spacing-md;
         line-height: 19px;
         text-align: center;
@@ -805,8 +773,6 @@ h1 {
     text-align: center;
 
     &_heating {
-        font-style: normal;
-        font-weight: normal;
         font-size: $spacing-xl;
         line-height: 36px;
         color: $color-secondary;
@@ -819,30 +785,25 @@ h1 {
     }
 }
 
-// ВРЕММЕННО
-
-
+/* Карточка товара */
 .product_card_image {
     position: relative;
     overflow: hidden;
-}
 
-.product_card_image img {
-    width: 100%;
-    display: block;
-    transition: transform 0.4s ease, filter 0.4s ease;
-}
+    img {
+        width: 100%;
+        display: block;
+        @include transition(transform, 0.4s, ease);
+        transition-property: transform, filter;
+    }
 
-.product_card_image::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0);
-    transition: background 0.4s ease;
-    pointer-events: none;
+    &::after {
+        content: '';
+        @include absolute-cover;
+        background: rgba(0, 0, 0, 0);
+        @include transition(background, 0.4s, ease);
+        pointer-events: none;
+    }
 }
 
 .product_card_overlay {
@@ -853,55 +814,55 @@ h1 {
     display: flex;
     gap: 10px;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    @include transition(opacity, 0.3s, ease);
     z-index: 2;
 }
 
+/* Кнопки на карточке товара */
 .quick_view_btn,
 .add_to_cart_btn {
-    padding: 10px 20px;
-    background: white;
-    border: none;
+    background: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $btn-width;
+    height: $btn-height;
+    border: 1px solid $color-white;
+    color: $color-white;
     cursor: pointer;
     font-size: 14px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
+    @include transition(all, 0.2s, ease);
 
-.quick_view_btn:hover,
-.add_to_cart_btn:hover {
-    background: #f16d7f;
-    color: white;
+    img {
+        color: $color-white;
+        width: 26px;
+        height: 23px;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+    }
 }
 
 /* Эффект при наведении на карточку */
-.product_card:hover .product_card_image::after {
-    background: rgba(0, 0, 0, 0.5);
+.product_card {
+    &:hover &_image {
+        &::after {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        img {
+            transform: scale(1.08);
+            filter: brightness(0.7);
+        }
+    }
+
+    &:hover &_overlay {
+        opacity: 1;
+    }
 }
 
-.product_card:hover .product_card_image img {
-    transform: scale(1.08);
-    filter: brightness(0.7);
-}
-
-.product_card:hover .product_card_overlay {
-    opacity: 1;
-}
-
-
-
-
-// ВРЕМЕННО
-
-
-
-
-.add_to_cart_btn {
-    all: unset;
-    cursor: pointer;
-    color: white;
-}
-
+/* Сетка товаров */
 .content__product_cards {
     margin-top: $spacing-3xl;
     margin-bottom: $spacing-3xl;
@@ -927,8 +888,6 @@ h1 {
 
     &_title {
         margin-top: 25px;
-        font-style: normal;
-        font-weight: normal;
         font-size: 13px;
         line-height: $spacing-md;
         color: $color-black;
@@ -937,7 +896,6 @@ h1 {
     &_description {
         margin-top: 12px;
         margin-bottom: 18px;
-        font-style: normal;
         font-weight: 300;
         font-size: 14px;
         line-height: 17px;
@@ -946,13 +904,12 @@ h1 {
 }
 
 .price {
-    font-style: normal;
-    font-weight: normal;
     font-size: $spacing-md;
     line-height: 19px;
     color: $color-primary;
 }
 
+/* Кнопка "Browse All Product" */
 .products__list_button {
     display: inline-block;
     padding: 14px 38px 13px;
@@ -1014,13 +971,11 @@ h1 {
             font-size: $spacing-md;
             line-height: 19px;
             color: $color-gray-lighter;
-            padding-right: 7px;
-            padding-left: 7px;
+            padding: 0 7px;
         }
 
         img {
-            padding-right: 7px;
-            padding-left: 7px;
+            padding: 0 7px;
         }
 
         :first-child {
@@ -1075,7 +1030,6 @@ h1 {
 
     &__menu {
         display: flex;
-        font-weight: normal;
         font-size: 14px;
         line-height: 17px;
         color: $color-filter-text;
@@ -1097,8 +1051,7 @@ h1 {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-top: 11px;
-        padding-bottom: 41px;
+        padding: 11px 0 41px;
         margin-bottom: -60px;
         background: $color-bg-gray;
         border: 1px solid $color-border;
@@ -1149,8 +1102,7 @@ h1 {
         display: grid;
         grid-template-columns: repeat(3, $card-width);
         grid-column-gap: $spacing-xl;
-        margin-top: 128px;
-        margin-bottom: 128px;
+        margin: 128px 0;
     }
 }
 
@@ -1258,13 +1210,10 @@ h1 {
 
     &_items_header {
         display: flex;
-        flex-direction: row;
         justify-content: space-between;
         align-items: flex-start;
 
         h3 {
-            font-style: normal;
-            font-weight: normal;
             font-size: 24px;
             line-height: 29px;
             color: $color-secondary;
@@ -1273,8 +1222,7 @@ h1 {
 
     &_buttons {
         width: 652px;
-        margin-top: 72px;
-        margin-bottom: 128px;
+        margin: 72px 0 128px;
         display: flex;
         justify-content: space-between;
 
@@ -1298,7 +1246,6 @@ h1 {
         }
 
         h3 {
-            font-style: normal;
             font-weight: 300;
             font-size: $spacing-md;
             line-height: 19px;
@@ -1349,8 +1296,7 @@ h1 {
     }
 
     p {
-        &:nth-child(1) {
-            font-style: normal;
+        &:first-child {
             font-weight: 400;
             font-size: 11px;
             line-height: 13px;
@@ -1358,13 +1304,11 @@ h1 {
         }
 
         &:nth-child(2) {
-            font-style: normal;
             font-weight: 300;
             font-size: $spacing-md;
             line-height: 19px;
             color: $color-secondary;
-            padding-top: 12px;
-            padding-bottom: 21px;
+            padding: 12px 0 21px;
         }
     }
 
@@ -1406,12 +1350,9 @@ footer {
             align-items: center;
             box-sizing: border-box;
             width: $card-width;
-            padding-top: 103px;
-            padding-bottom: 103px;
+            padding: 103px 0;
 
             h3 {
-                font-style: normal;
-                font-weight: normal;
                 font-size: 19.96px;
                 line-height: 24px;
                 color: $color-footer-text;
@@ -1439,7 +1380,6 @@ footer {
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
-        width: auto;
         height: 448px;
     }
 
@@ -1457,8 +1397,6 @@ footer {
             justify-content: space-around;
             height: 225px;
             width: $card-width;
-            font-style: normal;
-            font-weight: normal;
             font-size: $spacing-lg;
             line-height: 24px;
             text-align: center;
@@ -1508,7 +1446,7 @@ footer {
         &_social_networks {
             display: grid;
             grid-template-columns: repeat(4, $spacing-2xl);
-            grid-column-gap: 7px;
+            gap: 7px;
         }
     }
 }
@@ -1544,8 +1482,12 @@ footer {
     @include flex-center;
 
     &:hover {
-        fill: $color-white;
         background: $color-primary;
+
+        svg,
+        img {
+            fill: $color-white;
+        }
     }
 }
 
@@ -1555,14 +1497,12 @@ footer {
 
 @media (max-width: $breakpoint-tablet) {
     .container {
-        padding-left: $spacing-md;
-        padding-right: $spacing-md;
+        padding: 0 $spacing-md;
     }
 
     .header {
         &__top__menu {
-            padding-left: $spacing-2xl;
-            padding-right: $spacing-2xl;
+            padding: 0 $spacing-2xl;
         }
 
         &__bot__content {
@@ -1584,18 +1524,14 @@ footer {
             margin-top: $spacing-lg;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: 1fr 166px;
-            grid-column-gap: $spacing-lg;
-            grid-row-gap: $spacing-lg;
+            gap: $spacing-lg;
         }
 
         &__product_cards {
-            margin-top: 72px;
-            margin-bottom: $spacing-2xl;
-            display: grid;
+            margin: 72px 0 $spacing-2xl;
             grid-template-columns: repeat(2, $card-width);
             grid-template-rows: repeat(3, $card-height);
-            grid-column-gap: $spacing-md;
-            grid-row-gap: $spacing-md;
+            gap: $spacing-md;
             justify-content: center;
         }
     }
@@ -1606,13 +1542,10 @@ footer {
 
     .catalog {
         &__product__cards {
-            margin-top: 72px;
-            margin-bottom: $spacing-2xl;
-            display: grid;
+            margin: 72px 0 $spacing-2xl;
             grid-template-columns: repeat(2, $card-width);
             grid-template-rows: repeat(4, $card-height);
-            grid-column-gap: $spacing-md;
-            grid-row-gap: $spacing-md;
+            gap: $spacing-md;
             justify-content: center;
         }
     }
@@ -1621,9 +1554,8 @@ footer {
         display: grid;
         justify-content: center;
         grid-template-columns: repeat(2, $card-width);
-        grid-column-gap: $spacing-md;
-        margin-top: 128px;
-        margin-bottom: 128px;
+        gap: $spacing-md;
+        margin: 128px 0;
 
         >.item6 {
             display: none;
@@ -1655,7 +1587,6 @@ footer {
 
     footer {
         margin-top: 65px;
-        height: auto;
     }
 
     .footer {
@@ -1680,8 +1611,7 @@ footer {
             }
 
             &_info {
-                padding-top: 53px;
-                padding-bottom: $spacing-3xl;
+                padding: 53px 0 $spacing-3xl;
             }
 
             &_form {
@@ -1692,8 +1622,7 @@ footer {
         &__bottom {
             background: $color-secondary-light;
             justify-content: space-between;
-            padding-left: $spacing-2xl;
-            padding-right: $spacing-2xl;
+            padding: 0 $spacing-2xl;
         }
     }
 
@@ -1710,8 +1639,7 @@ footer {
 
 @media (max-width: $breakpoint-mobile) {
     .container {
-        padding-left: $spacing-md;
-        padding-right: $spacing-md;
+        padding: 0 $spacing-md;
     }
 
     .acc_logo,
@@ -1721,8 +1649,7 @@ footer {
 
     .header {
         &__top__menu {
-            padding-left: $spacing-md;
-            padding-right: $spacing-md;
+            padding: 0 $spacing-md;
         }
 
         &__menu_elements {
@@ -1748,22 +1675,18 @@ footer {
     }
 
     .marker {
-        margin-left: 0;
-        margin-right: 15px;
+        margin: 0 15px 0 0;
         height: 61px;
     }
 
     h1 {
-        font-weight: 700;
         font-size: $spacing-lg;
         line-height: 24px;
-        color: $color-secondary;
         width: 236px;
         height: 66px;
     }
 
     .header__bolt {
-        font-weight: 900;
         font-size: 38px;
         line-height: 46px;
     }
@@ -1796,6 +1719,26 @@ footer {
     .header__menu_popup_list li a {
         padding: 12px $spacing-lg;
         font-size: 14px;
+    }
+
+    // Адаптивность модального окна
+    .auth-modal__container {
+        width: $auth-modal-width-mobile;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .auth-modal__body {
+        padding: $spacing-lg;
+    }
+
+    .form-group input {
+        padding: 10px 12px;
+    }
+
+    .social-btn {
+        width: 40px;
+        height: 40px;
     }
 
     .catalog {
@@ -1837,8 +1780,7 @@ footer {
             justify-content: center;
             grid-template-columns: 358px;
             grid-template-rows: 579px 579px;
-            margin-top: $spacing-4xl;
-            margin-bottom: $spacing-4xl;
+            margin: $spacing-4xl 0;
 
             >.item3 {
                 display: none;
@@ -1851,8 +1793,7 @@ footer {
     }
 
     .list_product_window {
-        padding-top: 81px;
-        padding-bottom: $spacing-4xl;
+        padding: 81px 0 $spacing-4xl;
     }
 
     .filter {
@@ -1867,10 +1808,8 @@ footer {
         }
 
         &__menu {
-            display: flex;
             font-size: 12px;
             line-height: 14px;
-            margin: auto;
 
             img {
                 padding-left: 9px;
@@ -1993,8 +1932,7 @@ footer {
             }
 
             &_copyright {
-                margin-top: 40px;
-                margin-bottom: $spacing-sm;
+                margin: 40px 0 $spacing-sm;
             }
         }
     }
